@@ -24,6 +24,7 @@ sed --regexp-extended --in-place \
     --expression "s@/var/www/blackwall-test-task@/project/dir@" \
     --expression "s@SOURCES_LIST_COUNTRY_CODE: md@SOURCES_LIST_COUNTRY_CODE: <closest-country-code>@" \
     .docker/docker-compose.yml
+.docker/setup/copy-common-scripts
 docker-compose --file .docker/docker-compose.yml up --detach --build
 ```
 
