@@ -36,7 +36,7 @@ class Move extends Model
     /**
      * @inheritDoc
      */
-    protected array $fillable = ['id', 'game_id', 'tiles'];
+    protected $fillable = ['id', 'game_id', 'tiles'];
     /**
      * @inheritDoc
      */
@@ -44,7 +44,7 @@ class Move extends Model
     /**
      * @inheritDoc
      */
-    protected array $casts = [
+    protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

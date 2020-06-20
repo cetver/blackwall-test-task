@@ -42,6 +42,7 @@ echo "
 docker-compose --file .docker/docker-compose.yml exec blackwall-ac-test-task-php /bin/bash --login
 
 blackwall-ac-test-task@php7_4-debian:/var/www/html$ composer install
+blackwall-ac-test-task@php7_4-debian:/var/www/html$ composer run-script post-root-package-install
 blackwall-ac-test-task@php7_4-debian:/var/www/html$ php artisan migrate
 ```
 

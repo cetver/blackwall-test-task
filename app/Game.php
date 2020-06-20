@@ -39,7 +39,7 @@ class Game extends Model
     /**
      * @inheritDoc
      */
-    protected array $fillable = ['id', 'user_id', 'tiles'];
+    protected $fillable = ['id', 'user_id', 'tiles'];
     /**
      * @inheritDoc
      */
@@ -47,7 +47,7 @@ class Game extends Model
     /**
      * @inheritDoc
      */
-    protected array $casts = [
+    protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'finished_at' => 'datetime',

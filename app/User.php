@@ -34,7 +34,7 @@ class User extends Authenticatable
     /**
      * @inheritDoc
      */
-    protected array $fillable = ['id', 'username', 'password'];
+    protected $fillable = ['id', 'username', 'password'];
     /**
      * @inheritDoc
      */
@@ -42,7 +42,7 @@ class User extends Authenticatable
     /**
      * @inheritDoc
      */
-    protected array $casts = [
+    protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
