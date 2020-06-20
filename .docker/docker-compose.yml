@@ -1,0 +1,180 @@
+version: "3.6"
+
+services:
+    blackwall-ac-test-task-php:
+        image: blackwall-ac-test-task-php-fpm-image
+        hostname: php7_4-debian
+        depends_on:
+            - blackwall-ac-test-task-postgresql
+            - blackwall-ac-test-task-redis
+        cap_add:
+            # required by https://www.php.net/manual/en/install.fpm.configuration.php#slowlog
+            - SYS_PTRACE
+        build:
+            context: ./php
+            dockerfile: Dockerfile
+            args:
+                PHP_FPM_VERSION: 7.4
+                SOCKET_DIRS: 'php postgresql redis'
+                SOURCES_LIST_COUNTRY_CODE: md
+                SYSTEM_LOCALE: en_GB.UTF-8
+                SYSTEM_USERNAME: blackwall-ac-test-task
+                SYSTEM_PASSWORD: qwe
+        volumes:
+            # config
+            -
+                type: volume
+                source: blackwall-ac-test-task-php-etc-volume
+                target: /usr/local/etc
+            # source code
+            -
+                type: volume
+                source: blackwall-ac-test-task-source-code-volume
+                target: /var/www/html
+            # socket
+            -
+                type: bind
+                source: ./php/volumes/run/php
+                target: /var/run/php
+            # postgresql socket
+            -
+                type: bind
+                source: ./postgresql/volumes/run
+                target: /var/run/postgresql
+            # redis socket
+            -
+                type: bind
+                source: ./redis/volumes/run
+                target: /var/run/redis
+
+    blackwall-ac-test-task-nginx:
+        image: blackwall-ac-test-task-nginx-image
+        hostname: blackwall-ac-test-task-nginx-debian
+        depends_on:
+            - blackwall-ac-test-task-php
+        build:
+            context: ./nginx
+            dockerfile: Dockerfile
+            args:
+                SOURCES_LIST_COUNTRY_CODE: md
+                SYSTEM_LOCALE: en_GB.UTF-8
+                SOCKET_DIRS: php
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            # config
+            -
+                type: volume
+                source: blackwall-ac-test-task-nginx-etc-volume
+                target: /etc/nginx
+            # source code
+            -
+                type: volume
+                source: blackwall-ac-test-task-source-code-volume
+                target: /var/www/html
+            # php socket
+            -
+                type: bind
+                source: ./php/volumes/run/php
+                target: /var/run/php
+
+    blackwall-ac-test-task-postgresql:
+        image: blackwall-ac-test-task-postgresql-image
+        hostname: blackwall-ac-test-task-postgresql_12-debian
+        build:
+            context: ./postgresql
+            dockerfile: Dockerfile
+            args:
+                POSTGRES_VERSION: 12
+                SOURCES_LIST_COUNTRY_CODE: md
+                SYSTEM_LOCALE: en_GB.UTF-8
+        environment:
+            POSTGRES_DB: blackwall-ac-test-task
+            POSTGRES_PASSWORD: root
+            POSTGRES_INITDB_ARGS: --locale=en_GB.UTF-8
+        ports:
+            - 5432:5432
+        volumes:
+            # db data
+            -
+                type: volume
+                source: blackwall-ac-test-task-postgresql-lib-volume
+                target: /var/lib/postgresql/data
+            # socket
+            -
+                type: bind
+                source: ./postgresql/volumes/run
+                target: /var/run/postgresql
+
+    blackwall-ac-test-task-redis:
+        image: blackwall-ac-test-task-redis-image
+        hostname: blackwall-ac-test-task-redis_6-debian
+        privileged: true # see Dockerfile.CMD
+        build:
+            context: ./redis
+            dockerfile: Dockerfile
+            args:
+                REDIS_VERSION: 6
+                SOURCES_LIST_COUNTRY_CODE: md
+                SYSTEM_LOCALE: en_GB.UTF-8
+        ports:
+            - 6379:6379
+        volumes:
+            # config
+            -
+                type: volume
+                source: blackwall-ac-test-task-redis-etc-volume
+                target: /etc/redis
+            # data
+            -
+                type: volume
+                source: blackwall-ac-test-task-redis-lib-volume
+                target: /data
+            # socket
+            -
+                type: bind
+                source: ./redis/volumes/run
+                target: /var/run/redis
+
+volumes:
+    # php
+    blackwall-ac-test-task-php-etc-volume:
+        driver: local
+        driver_opts:
+            device: /var/www/blackwall-test-task/.docker/php/volumes/etc
+            type: none
+            o: bind
+    blackwall-ac-test-task-source-code-volume:
+        driver: local
+        driver_opts:
+            device: /var/www/blackwall-test-task/.docker/..
+            type: none
+            o: bind
+    # nginx
+    blackwall-ac-test-task-nginx-etc-volume:
+        driver: local
+        driver_opts:
+            device: /var/www/blackwall-test-task/.docker/nginx/volumes/etc
+            type: none
+            o: bind
+    # postgresql
+    blackwall-ac-test-task-postgresql-lib-volume:
+        driver: local
+        driver_opts:
+            device: /var/www/blackwall-test-task/.docker/postgresql/volumes/lib
+            type: none
+            o: bind
+    # redis
+    blackwall-ac-test-task-redis-etc-volume:
+        driver: local
+        driver_opts:
+            device: /var/www/blackwall-test-task/.docker/redis/volumes/etc
+            type: none
+            o: bind
+    blackwall-ac-test-task-redis-lib-volume:
+        driver: local
+        driver_opts:
+            device: /var/www/blackwall-test-task/.docker/redis/volumes/lib
+            type: none
+            o: bind
